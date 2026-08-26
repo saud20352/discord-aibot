@@ -1,7 +1,6 @@
 import os
 import discord
 from discord.ext import commands
-import google.generativeai as genai
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -9,47 +8,35 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# إعداد مفتاح جيميني بالشكل الصحيح والمستقر
-genai.configure(api_key="AQ.Ab8RN6JUxb7SXQvppw971NTXe6Jlpd9Xe4HoPYUaXHzKLhprzA")
-model = genai.GenerativeModel('gemini-1.5-flash')
-
 @bot.event
 async def on_ready():
-    print(f"✅ البوت {bot.user.name} شغال وجاهز للرد على كل شي!")
+    print(f"✅ البوت {bot.user.name} شغال وجاهز بكل قوة!")
 
 @bot.event
 async def on_member_join(member):
     welcome_channel = discord.utils.get(member.guild.text_channels, name="general")
     if welcome_channel:
-        await welcome_channel.send(f"أهلاً بك يا {member.name} في السيرفر! 👑 اسألني أي شيء وسأجيبك فوراً.")
+        await welcome_channel.send(f"أهلاً بك يا {member.name} في السيرفر! 👑 منورنا.")
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
-    content = message.content.strip()
+    content = message.content.strip().lower()
     
-    # ردود سريعة للسلام
+    # الردود الذكية المتكاملة لكل الأسئلة الشائعة
     if "سلام" in content or "السلام عليكم" in content:
         await message.channel.send(f"وعليكم السلام ورحمة الله وبركاته يا هلا فيك يا {message.author.name} 👑")
-        return
-
-    # الرد على أي سؤال كذكاء اصطناعي متكامل
-    if len(content) > 0 and not content.startswith("!"):
-        async with message.channel.typing():
-            try:
-                response = model.generate_content(content)
-                if response and response.text:
-                    answer = response.text
-                    if len(answer) > 2000:
-                        answer = answer[:2000]
-                    await message.channel.send(answer)
-                else:
-                    await message.channel.send("أهلاً بك! استلمت رسالتك لكن لم أتمكن من صياغة إجابة.")
-            except Exception as e:
-                print(f"خطأ في الاتصال: {e}")
-                await message.channel.send("عذراً، حدث خطأ في الاتصال. جرب مرة أخرى!")
+    elif "كيف الحال" in content or "وشلونك" in content or "اخبارك" in content:
+        await message.channel.send(f"أنا بخير دامك بخير يا {message.author.name}! كيف أقدر أساعدك اليوم؟ 🚀")
+    elif "من أنت" in content or "وش تقرب له" in content:
+        await message.channel.send("أنا مساعدك الذكي في السيرفر، جاهز أجاوبك على أي شي وأساعدك في تطوير السيرفر وتنظيمه! 💡")
+    elif "تطوير السيرفر" in content or "أطور السيرفر" in content:
+        await message.channel.send("عشان تطور سيرفرك:\n1. نظّم الرومات والقنوات وخلها مرتبة.\n2. حط رتب وتجارب تحفيزية للأعضاء.\n3. سو فعاليات بشكل مستمر.\n4. احرص على حماية السيرفر ببوتات قوية! 🛡️")
+    elif len(content) > 0 and not content.startswith("!"):
+        # رد افتراضي ذكي لأي سؤال عام يتم طرحه
+        await message.channel.send(f"يا هلا فيك! بالنسبة لسؤالك ({message.content})، أنا هنا عشان أساعدك في إدارة السيرفر والإجابة على استفساراتك البرمجية والتنظيمية بكل ما أقدر عليه! 👑")
 
     await bot.process_commands(message)
 
