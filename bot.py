@@ -1,7 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-from google import genai
+import google.generativeai as genai
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -9,12 +9,13 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# استخدام المفتاح الجديد مع العميل الحديث
-client = genai.Client(api_key="AQ.Ab8RN6JUxb7SXQvppw971NTXe6Jlpd9Xe4HoPYUaXHzKLhprzA")
+# إعداد مفتاح جيميني بالشكل الصحيح والمستقر
+genai.configure(api_key="AQ.Ab8RN6JUxb7SXQvppw971NTXe6Jlpd9Xe4HoPYUaXHzKLhprzA")
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 @bot.event
 async def on_ready():
-    print(f"✅ البوت {bot.user.name} متصل وجاهز للرد على كل شي بالنموذج المطلوب!")
+    print(f"✅ البوت {bot.user.name} شغال وجاهز للرد على كل شي!")
 
 @bot.event
 async def on_member_join(member):
@@ -34,24 +35,21 @@ async def on_message(message):
         await message.channel.send(f"وعليكم السلام ورحمة الله وبركاته يا هلا فيك يا {message.author.name} 👑")
         return
 
-    # الرد على أي سؤال باستخدام نموذج gemini-3.6-flash
+    # الرد على أي سؤال كذكاء اصطناعي متكامل
     if len(content) > 0 and not content.startswith("!"):
         async with message.channel.typing():
             try:
-                response = client.models.generate_content(
-                    model='gemini-3.6-flash',
-                    contents=content,
-                )
+                response = model.generate_content(content)
                 if response and response.text:
                     answer = response.text
                     if len(answer) > 2000:
                         answer = answer[:2000]
                     await message.channel.send(answer)
                 else:
-                    await message.channel.send("أهلاً بك! استلمت سؤالك، لكن لم أتمكن من صياغة إجابة.")
+                    await message.channel.send("أهلاً بك! استلمت رسالتك لكن لم أتمكن من صياغة إجابة.")
             except Exception as e:
                 print(f"خطأ في الاتصال: {e}")
-                await message.channel.send("عذراً، حدث خطأ في الاتصال بالذكاء الاصطناعي. جرب مرة أخرى!")
+                await message.channel.send("عذراً، حدث خطأ في الاتصال. جرب مرة أخرى!")
 
     await bot.process_commands(message)
 
