@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 import google.generativeai as genai
 
-# إعدادات الصلاحيات
+# إعدادات الصلاحيات الأساسية
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
@@ -12,64 +12,52 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 # إعداد مفتاح جوجل جيميني
 genai.configure(api_key="AQ.Ab8RN6JUxb7SXQvppw971NTXe6Jlpd9Xe4HoPYUaXHzKLhprzA")
-
-# استخدام الإصدار المطلوب 3.6-flash بشكل مباشر
 model = genai.GenerativeModel('gemini-3.6-flash')
 
 @bot.event
 async def on_ready():
-    print(f"✅ البوت {bot.user.name} متصل وجاهز بإصدار Gemini 3.6-flash الجديد!")
+    print(f"✅ البوت {bot.user.name} متصل وجاهز للعمل!")
 
-# 1️⃣ المساعد الذكي للأعضاء الجدد
+# 1️⃣ الرد التلقائي على الرسائل العادية (مثل: سلام، هلا، إلخ)
 @bot.event
-async def on_member_join(member):
-    welcome_channel = discord.utils.get(member.guild.text_channels, name="general")
-    if welcome_channel:
-        embed = discord.Embed(
-            title=f"أهلاً بك يا {member.name} في السيرفر! 👑",
-            description="أنا المدير الذكي، وموجود هنا لمساعدتك وتوجيهك في كل ما تحتاجه.",
-            color=discord.Color.gold()
-        )
-        await welcome_channel.send(embed=embed)
-
-# 2️⃣ حارس المتاجر وكشف الإيصالات الذكي
-@bot.command(name="فحص_الإيصال")
-async def check_receipt(ctx):
-    if not ctx.message.attachments:
-        await ctx.send("❌ يا غالي، الرجاء إرفاق صورة الإيصال مع الأمر.")
+async def on_message(message):
+    # عشان البوت ما يرد على نفسه ويدخل في لوب (حلقة مفرغة)
+    if message.author == bot.user:
         return
 
-    await ctx.send("🔍 جاري فحص الإيصال عبر نظام الذكاء الاصطناعي الأمني... لحظات.")
+    content = message.content.lower()
+
+    # لو الشخص كتب سلام أو هلا
+    if "سلام" in content or "السلام عليكم" in content:
+        await message.channel.send(f"وعليكم السلام ورحمة الله وبركاته يا هلا فيك يا {message.author.name} 👑")
+        return
     
-    embed = discord.Embed(
-        title="✅ نتيجة الفحص: إيصال سليم ومعتمد",
-        description="تم التحقق من تفاصيل التحويل بنجاح، يمكنك الاعتماد.",
-        color=discord.Color.green()
-    )
-    await ctx.send(embed=embed)
+    if "هلا" in content or "اهلن" in content:
+        await message.channel.send(f"أهلين وسهلين! منور السيرفر 🚀")
+        return
 
-# 3️⃣ الاستشارة الذكية (مع تقسيم الرسائل الطويلة لتجنب خطأ 2000 حرف)
-@bot.command(name="استفسار")
-async def ask_ceo(ctx, *, question: str):
-    async with ctx.typing():
-        try:
-            prompt = f"أنت المدير التنفيذي الذكي لسيرفر ديسكورد. أجب باحترافية وبشكل مفيد جداً على هذا السؤال: {question}"
-            response = model.generate_content(prompt)
-            answer = response.text
-            
-            # تقسيم الإجابة إذا تجاوزت حد ديسكورد (2000 حرف)
-            if len(answer) > 2000:
-                for i in range(0, len(answer), 2000):
-                    await ctx.send(answer[i:i+2000])
-            else:
-                await ctx.send(answer)
-            
-        except Exception as e:
-            await ctx.send(f"⚠️ حدث خطأ في الاتصال: {e}")
+    # 2️⃣ أمر الذكاء الاصطناعي لو تبي تسأله أي شيء باستخدام كلمة !سؤال
+    if content.startswith("!سؤال"):
+        question = message.content[5:].strip()
+        if question:
+            async with message.channel.typing():
+                try:
+                    response = model.generate_content(question)
+                    answer = response.text
+                    
+                    if len(answer) > 2000:
+                        for i in range(0, len(answer), 2000):
+                            await message.channel.send(answer[i:i+2000])
+                    else:
+                        await message.channel.send(answer)
+                except Exception as e:
+                    await message.channel.send(f"⚠️ حدث خطأ: {e}")
+        else:
+            await message.channel.send("اكتب بعد كلمة !سؤال الشيء اللي تبي تسأل عنه.")
+        return
 
-# تشغيل البوت بأمان تام عبر سحابة راندر
-token = os.getenv("DISCORD_TOKEN")
-if not token:
-    raise ValueError("⚠️ تنبيه: لم يتم العثور على متغير البيئة DISCORD_TOKEN في إعدادات المنصة!")
+    # السماح بباقي الأوامر لو وجدت
+    await bot.process_commands(message)
 
-bot.run(token)
+# تشغيل البوت بأمان
+bot.run(os.getenv("DISCORD_TOKEN"))
