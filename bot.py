@@ -1,7 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-import google.generativeai as genai
+from google import genai
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -9,13 +9,14 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ضبط المفتاح بالطريقة الكلاسيكية المستقرة
-genai.configure(api_key="AQ.Ab8RN6L6FXHdSSk-dPYda-_kkoyt_7QjUKuLrV4S1YKNB4WzUQ")
-model = genai.GenerativeModel('gemini-1.5-flash')
+# تهيئة العميل بالمفتاح الجديد ومعرف المشروع الظاهر في صصورتك
+client = genai.Client(
+    api_key="AQ.Ab8RN6Kk_eGsCRt-gq-GkDmERbFEgD2rqr1M4yBgKifPx_iC2w"
+)
 
 @bot.event
 async def on_ready():
-    print(f"✅ البوت {bot.user.name} متصل وجاهز للرد كذكاء اصطناعي!")
+    print(f"✅ البوت {bot.user.name} يعمل كذكاء اصطناعي حقيقي ومتصل بنجاح!")
 
 @bot.event
 async def on_message(message):
@@ -28,21 +29,28 @@ async def on_message(message):
         await message.channel.send(f"وعليكم السلام ورحمة الله وبركاته يا هلا فيك يا {message.author.name} 👑")
         return
 
-    # الرد المباشر على أي سؤال في العالم
+    # الرد المباشر على أي سؤال في العالم كذكاء اصطناعي متكامل
     if len(content) > 0 and not content.startswith("!"):
         async with message.channel.typing():
             try:
-                response = model.generate_content(content)
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=content
+                )
+                
                 if response and response.text:
                     answer = response.text
                     if len(answer) > 2000:
-                        answer = answer[:2000]
-                    await message.channel.send(answer)
+                        for i in range(0, len(answer), 2000):
+                            await message.channel.send(answer[i:i+2000])
+                    else:
+                        await message.channel.send(answer)
                 else:
-                    await message.channel.send("عذراً، لم أتمكن من صياغة الإجابة.")
+                    await message.channel.send("أهلاً بك! لم أتمكن من صياغة الإجابة.")
+                    
             except Exception as e:
-                print(f"خطأ: {e}")
-                await message.channel.send(f"يا هلا فيك يا {message.author.name}! أنا هنا لمساعدتك في كل ما تطلب وتطوير السيرفر معك 🚀")
+                print(f"خطأ تقني: {e}")
+                await message.channel.send(f"يا هلا فيك يا {message.author.name}! أنا جاهز لمساعدتك في كل ما تطلب 🚀")
 
     await bot.process_commands(message)
 
