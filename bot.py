@@ -14,7 +14,7 @@ API_KEY = "AQ.Ab8RN6L6FXHdSSk-dPYda-_kkoyt_7QjUKuLrV4S1YKNB4WzUQ"
 
 @bot.event
 async def on_ready():
-    print(f"✅ البوت {bot.user.name} يعمل كذكاء اصطناعي بنجاح تام وبدون أخطاء!")
+    print(f"✅ البوت {bot.user.name} شغال وجاهز!")
 
 @bot.event
 async def on_message(message):
@@ -30,7 +30,7 @@ async def on_message(message):
     if len(content) > 0 and not content.startswith("!"):
         async with message.channel.typing():
             try:
-                # الاتصال المباشر السريع والآمن
+                # استخدام نموذج gemini-1.5-flash مع الـ API الصحيح
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
                 headers = {'Content-Type': 'application/json'}
                 data = {
@@ -42,16 +42,20 @@ async def on_message(message):
                 response = requests.post(url, headers=headers, data=json.dumps(data))
                 result = response.json()
                 
-                # استخراج الرد بدقة
-                answer = result['candidates'][0]['content']['parts'][0]['text']
-                
-                if len(answer) > 2000:
-                    answer = answer[:2000]
-                await message.channel.send(answer)
+                # طباعة الرد الفعلي من جوجل
+                if "candidates" in result:
+                    answer = result['candidates'][0]['content']['parts'][0]['text']
+                    if len(answer) > 2000:
+                        answer = answer[:2000]
+                    await message.channel.send(answer)
+                else:
+                    # في حال رجع خطأ من جوجل نفسه، نطبع الخطأ عشان نعرفه
+                    print(f"رد جوجل: {result}")
+                    await message.channel.send(f"عذراً يا {message.author.name}، استلمت سؤالك ولكن مفتاح الـ API يطلب صلاحيات إضافية أو نموذج مختلف.")
                 
             except Exception as e:
-                print(f"خطأ: {e}")
-                await message.channel.send(f"يا هلا فيك يا {message.author.name}! استلمت سؤالك، وأنا جاهز لمساعدتك في كل ما تطلب وتطوير السيرفر معك 🚀")
+                print(f"خطأ برمجي: {e}")
+                await message.channel.send(f"عذراً يا {message.author.name}، حدث خطأ في الاتصال.")
 
     await bot.process_commands(message)
 
