@@ -9,19 +9,13 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# إعداد مفتاح جيميني بالنموذج السريع والمضمون
+# ضبط مفتاح الاتصال
 genai.configure(api_key="AQ.Ab8RN6JUxb7SXQvppw971NTXe6Jlpd9Xe4HoPYUaXHzKLhprzA")
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 @bot.event
 async def on_ready():
-    print(f"✅ البوت {bot.user.name} شغال وجاهز بكامل طاقته!")
-
-@bot.event
-async def on_member_join(member):
-    welcome_channel = discord.utils.get(member.guild.text_channels, name="general")
-    if welcome_channel:
-        await welcome_channel.send(f"أهلاً بك يا {member.name} في السيرفر! 👑 اسألني أي شيء وسأجيبك فوراً.")
+    print(f"✅ البوت {bot.user.name} شغال وجاهز!")
 
 @bot.event
 async def on_message(message):
@@ -30,26 +24,26 @@ async def on_message(message):
 
     content = message.content.strip()
     
-    # 1. ردود سريعة للسلام والتحيات
+    # ردود سريعة للسلام
     if "سلام" in content or "السلام عليكم" in content:
         await message.channel.send(f"وعليكم السلام ورحمة الله وبركاته يا هلا فيك يا {message.author.name} 👑")
         return
-    
-    if "هلا" in content or "اهلن" in content:
-        await message.channel.send(f"أهلين وسهلين! منور السيرفر 🚀")
-        return
 
-    # 2. أي رسالة ثانية يرسلها للذكاء الاصطناعي ويرد عليها فوراً
+    # للأسئلة والدردشة العامة
     if len(content) > 0 and not content.startswith("!"):
         try:
+            # إرسال الطلب لجوجل بشكل آمن وسريع
             response = model.generate_content(content)
-            if response and response.text:
+            if response and hasattr(response, 'text') and response.text:
                 answer = response.text
                 if len(answer) > 2000:
                     answer = answer[:2000]
                 await message.channel.send(answer)
+            else:
+                await message.channel.send("أهلاً بك! استلمت رسالتك لكن لم أتمكن من صياغة إجابة.")
         except Exception as e:
-            print(f"خطأ في الرد: {e}")
+            print(f"خطأ: {e}")
+            await message.channel.send("علي معليش، حصل ضغط بسيط. جرب تسألني مرة ثانية!")
 
     await bot.process_commands(message)
 
