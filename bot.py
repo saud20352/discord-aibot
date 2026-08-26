@@ -1,8 +1,7 @@
 import os
 import discord
 from discord.ext import commands
-import requests
-import json
+from google import genai
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -10,11 +9,12 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-API_KEY = "AQ.Ab8RN6L6FXHdSSk-dPYda-_kkoyt_7QjUKuLrV4S1YKNB4WzUQ"
+# تهيئة العميل بالمفتاح الجديد
+client = genai.Client(api_key="AQ.Ab8RN6L6FXHdSSk-dPYda-_kkoyt_7QjUKuLrV4S1YKNB4WzUQ")
 
 @bot.event
 async def on_ready():
-    print(f"✅ البوت {bot.user.name} شغال وجاهز!")
+    print(f"✅ البوت {bot.user.name} يعمل الآن كذكاء اصطناعي متكامل!")
 
 @bot.event
 async def on_message(message):
@@ -30,32 +30,25 @@ async def on_message(message):
     if len(content) > 0 and not content.startswith("!"):
         async with message.channel.typing():
             try:
-                # استخدام نموذج gemini-1.5-flash مع الـ API الصحيح
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
-                headers = {'Content-Type': 'application/json'}
-                data = {
-                    "contents": [{
-                        "parts": [{"text": content}]
-                    }]
-                }
+                # استخدام النموذج القياسي المدعوم للرد على كل شي
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=content
+                )
                 
-                response = requests.post(url, headers=headers, data=json.dumps(data))
-                result = response.json()
-                
-                # طباعة الرد الفعلي من جوجل
-                if "candidates" in result:
-                    answer = result['candidates'][0]['content']['parts'][0]['text']
+                if response and response.text:
+                    answer = response.text
                     if len(answer) > 2000:
-                        answer = answer[:2000]
-                    await message.channel.send(answer)
+                        for i in range(0, len(answer), 2000):
+                            await message.channel.send(answer[i:i+2000])
+                    else:
+                        await message.channel.send(answer)
                 else:
-                    # في حال رجع خطأ من جوجل نفسه، نطبع الخطأ عشان نعرفه
-                    print(f"رد جوجل: {result}")
-                    await message.channel.send(f"عذراً يا {message.author.name}، استلمت سؤالك ولكن مفتاح الـ API يطلب صلاحيات إضافية أو نموذج مختلف.")
-                
+                    await message.channel.send("عذراً، لم أتمكن من صياغة الإجابة.")
+                    
             except Exception as e:
-                print(f"خطأ برمجي: {e}")
-                await message.channel.send(f"عذراً يا {message.author.name}، حدث خطأ في الاتصال.")
+                print(f"خطأ تقني: {e}")
+                await message.channel.send("عذراً، حدث خطأ أثناء معالجة طلبك عبر الذكاء الاصطناعي.")
 
     await bot.process_commands(message)
 
