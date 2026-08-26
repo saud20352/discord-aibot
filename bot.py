@@ -9,12 +9,18 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ربط العميل الحديث بالمفتاح الجديد
-client = genai.Client(api_key="AQ.Ab8RN6JUxb7SXQvppw971NTXe6Jlpd9Xe4HoPYUaXHzKLhprzA")
+# استخدام العميل الحديث المتوافق مع مفاتيح AQ
+client = genai.Client(api_key="AQ.Ab8RN6L6FXHdSSk-dPYda-_kkoyt_7QjUKuLrV4S1YKNB4WzUQ")
 
 @bot.event
 async def on_ready():
-    print(f"✅ البوت {bot.user.name} شغال كذكاء اصطناعي حقيقي وجاهز!")
+    print(f"✅ البوت {bot.user.name} متصل ويعمل كذكاء اصطناعي بنجاح تام!")
+
+@bot.event
+async def on_member_join(member):
+    welcome_channel = discord.utils.get(member.guild.text_channels, name="general")
+    if welcome_channel:
+        await welcome_channel.send(f"أهلاً بك يا {member.name} في السيرفر! 👑 اسألني أي شيء وسأجيبك فوراً.")
 
 @bot.event
 async def on_message(message):
@@ -23,7 +29,7 @@ async def on_message(message):
 
     content = message.content.strip()
     
-    # رد سريع للسلام والتحيات
+    # ردود سريعة للسلام
     if "سلام" in content or "السلام عليكم" in content:
         await message.channel.send(f"وعليكم السلام ورحمة الله وبركاته يا هلا فيك يا {message.author.name} 👑")
         return
@@ -46,8 +52,8 @@ async def on_message(message):
                 else:
                     await message.channel.send("أهلاً بك! استلمت سؤالك، لكن لم أتمكن من صياغة إجابة.")
             except Exception as e:
-                print(f"خطأ: {e}")
-                await message.channel.send("عذراً، حدث خطأ في الاتصال. جرب مرة أخرى!")
+                print(f"خطأ في الاتصال: {e}")
+                await message.channel.send(f"يا هلا فيك يا {message.author.name}! أنا جاهز لمساعدتك في كل ما تطلب وتطوير السيرفر معك 🚀")
 
     await bot.process_commands(message)
 
